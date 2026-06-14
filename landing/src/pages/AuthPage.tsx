@@ -143,11 +143,6 @@ export function AuthPage() {
         });
         
         if (loginError) {
-          if (loginError.message.toLowerCase().includes('email not confirmed')) {
-            setIsEmailSent(true);
-            setIsLoading(false);
-            return;
-          }
           alert('Ошибка входа: ' + loginError.message);
           setIsLoading(false);
           return;
@@ -158,12 +153,10 @@ export function AuthPage() {
         return;
       }
 
-      // If signup was successful but requires email verification
-      // Check if user exists but session is null, or if they are explicitly unconfirmed
-      if (data.user && (!data.session || !data.user.email_confirmed_at)) {
-        setIsEmailSent(true);
-        setIsLoading(false);
-        return;
+      // Email confirmation is disabled — proceed directly after signup/login.
+      // If a session wasn't returned (e.g. just signed up), sign in to get one.
+      if (data.user && !data.session) {
+        await supabase.auth.signInWithPassword({ email, password });
       }
 
       // Briefly mock to show realistic feel, then fetch real exact count and position
